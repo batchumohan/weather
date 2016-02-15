@@ -1,0 +1,175 @@
+package com.twc.SmokeTestCases;
+
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+
+import atu.testng.reports.ATUReports;
+
+import com.twc.General.Swipe;
+import com.twc.driver.Driver;
+import com.twc.driver.PropertyFile;
+
+@SuppressWarnings("unused")
+public class SmokeTest_AD_C333173_Verify_WeatherFX_ApiCall_RE extends Driver{
+	
+	@SuppressWarnings("deprecation")
+	public void verify_WeatherFX_Apicall_On_FreshLaunch() throws ParseException, Exception {
+
+		//Object creation to Read data from 'DataFile_Property' file
+		 Driver.property();
+		 PropertyFile.property();
+
+		System.out.println("Verification of WeatherFX Call Test_Case Started");
+
+		//Run the 'Debug' and 'Write logs to LogFile' Command
+		String adbPath = properties.getProperty("adbPath");
+		String[] str ={"/bin/bash", "-c", adbPath+" shell setprop log.tag.TwcAd DEBUG"};
+		Process p = Runtime.getRuntime().exec(str);
+		System.out.println("Debug command is done");
+	
+		String[] str1 ={"/bin/bash", "-c", adbPath+" -d logcat -v time >> "+properties.getProperty("LogFilePath")};
+		Process p1 = Runtime.getRuntime().exec(str1);
+		System.out.println("Writing App logs to LogFile");
+		
+		ATUReports.add("Launch the app",false);
+		
+		//Un-Comment the below try catch block,to run this test case as alone 
+		
+//		try{
+//		//Wait for 20 sec for element presence
+//		WebDriverWait wait = new WebDriverWait(Ad, 10);
+//		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("com.weather.Weather:id/temperature")));
+//		
+//		//Temperature  Element
+//		MobileElement el = (MobileElement) Ad.findElementById("com.weather.Weather:id/temperature");
+//		System.out.println("Temp : "+el.getText());
+//		
+//		ATUReports.add("Scroll to Feed-1 Ad",false);
+//		
+//		Swipe.swipe();
+//		Swipe.swipe();
+//		
+//		} catch (Exception e){
+//		//	System.out.println("Exception message : "+e);
+//		}
+		
+		Thread.sleep(2500);
+     
+		//To verify Feed_1 Ad present
+		MobileElement AdEle =(MobileElement) Ad.findElementByXPath("//android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.widget.LinearLayout[1]/android.widget.FrameLayout[1]/android.support.v4.widget.DrawerLayout[1]/android.widget.RelativeLayout[1]/android.view.View[2]/android.widget.ListView[1]/android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.view.View[1]");
+
+		WebDriverWait wait1 = new WebDriverWait(Ad, 4);
+		
+		wait1.until(ExpectedConditions.visibilityOf(AdEle));
+	
+		if(AdEle.isDisplayed())
+		{
+			System.out.println("Feed-1 Ad is present");
+			ATUReports.add("Feed-1 Ad is present",false);
+		}
+
+		//Read logs from LogFile for feed_1 to verify WFXTG values	
+		
+		BufferedReader r = new BufferedReader(new FileReader(properties.getProperty("LogFilePath")));
+
+		String line = "";
+		String allLine = "";
+		
+		while((line=r.readLine()) != null)
+		{
+			
+			System.out.println("Sys data is ::"+line);
+			
+		}
+
+		String FilePath = properties.getProperty("LogFilePath");
+		StringBuffer sb=null;
+		try {
+			FileInputStream fstream = new FileInputStream(FilePath);
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					fstream));
+			String strLine;
+
+			// / read log line by line ------ strLine = br.readLines(6, 10); /
+		    sb = new StringBuffer("");
+			while ((strLine = br.readLine()) != null) {
+
+				// System.out.println (strLine);
+				sb.append(strLine);
+			  }
+			 br.close();
+	     } catch (Exception e) {
+			e.printStackTrace();
+		 }
+		
+			//Verify the WFX_API_Call is present in Logs
+		    String WFX_API_Call =null;
+		    
+			WFX_API_Call = sb.toString().substring(sb.toString().lastIndexOf("https://triggers.wfxtriggers.com/json/?resp_type=json&acctid=B88159&current=true"));
+			WFX_API_Call = WFX_API_Call.substring(WFX_API_Call.indexOf("https"), WFX_API_Call.indexOf("B88159")+6);
+			System.out.println("WFX API Call call is present and the url is : \n"+WFX_API_Call);
+			ATUReports.add("WFX API Call is present and the url is : \n"+WFX_API_Call,false);
+				
+			//Verify WFXTG values of Feed-1 PubAd call
+			List<String> wfxtg_values = new ArrayList<String>();
+			ATUReports.add("Verify the WFXTG values in Feed_1 Call",false);
+			
+			String pub_wfxtg = null;
+		    String pubad_wfxtg =null;
+			List<String> pubad_wfxtgvalues = new ArrayList<String>();
+
+			if (sb.toString().contains("slotName=weather.feed1")) {
+				String req1 = sb.toString().substring(
+						sb.toString().lastIndexOf("slotName=weather.feed1"));
+				req1 = req1.substring(req1.indexOf(",") + 1, req1.indexOf("}"));
+				String[] arrays1 = req1.split(" ");
+				System.out.println("Verifying the " + req1);
+				for (String keys : arrays1) {
+					// System.out.println("======"+keys);
+					if (keys.contains("=")) {
+						String[] key = keys.split("=");
+						if (key[0].contains("wfxtg")) {
+							pub_wfxtg = key[1].toString();
+							pub_wfxtg = pub_wfxtg.substring(0,pub_wfxtg.lastIndexOf(","));
+							pub_wfxtg = pub_wfxtg.replaceAll(",", ", ");
+							pubad_wfxtgvalues.add(pub_wfxtg);
+							break;
+						}
+
+					}
+
+				}
+                pubad_wfxtg =pubad_wfxtgvalues.toString();
+				System.out.println("pubad_wfxtg values are :: "+ pubad_wfxtgvalues.toString());
+				ATUReports.add("PubAd_WFXTG values :: "+pubad_wfxtg,false);
+//				ATUReports.add("WFXTG values are present",false);				
+
+			}
+       	System.out.println("Verification of wfxtg test case done");
+		Thread.sleep(1000);
+	}
+}
