@@ -76,11 +76,7 @@ public class Smoke_Test extends Driver{
 		System.setProperty("atu.reporter.config", "./atu.properties"); 
 	}
 
-	/* @Test
-	public void AD_Display() throws Exception{
-		news news1 = new news();
-		news1.verify_adpresent_onextendedNews_page();
-	}*/
+	
 	
 	
 	  //Pull To Refresh
